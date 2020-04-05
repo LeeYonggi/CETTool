@@ -93,6 +93,7 @@ namespace CET
         void RightClick(Event e)
         {
             selectedNode = null;
+            clickedOnWindow = false;
 
             for (int i = 0; i < windows.Count; i++)
             {
@@ -110,7 +111,7 @@ namespace CET
             }
             else
             {
-                CreateNode(e);
+                ModifyNode(e);
             }
         }
 
@@ -131,12 +132,36 @@ namespace CET
         {
             GenericMenu menu = new GenericMenu();
 
-            if(selectedNode is StateNode)
+            if (selectedNode is StateNode)
+            {
+                StateNode stateNode = selectedNode as StateNode;
+                if (stateNode.currentState != null)
+                {
+                    menu.AddSeparator("");
+                    menu.AddItem(new GUIContent("Add Transition"), false, ConTextCallback, UserActions.AddTransitionNode);
+                }
+                else
+                {
+                    menu.AddSeparator("");
+                    menu.AddDisabledItem(new GUIContent("Add Transition"));
+                }
+                menu.AddSeparator("");
+                menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
+            }
+
+            if (selectedNode is TransitionNode)
+            {
+                menu.AddSeparator("");
+                menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
+            }
+
+            if(selectedNode is CommentNode)
             {
                 menu.AddSeparator("");
                 menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
             }
             menu.ShowAsContext();
+            e.Use();
         }
 
         void ConTextCallback(object o)
@@ -147,16 +172,40 @@ namespace CET
             {
                 case UserActions.AddState:
                     StateNode stateNode = new StateNode{
-                        windowRect = new Rect(mousePosition.x, mousePosition.y, 150, 250),
+                        windowRect = new Rect(mousePosition.x, mousePosition.y, 200, 250),
                         windowTitle = "State"
                     };
                     windows.Add(stateNode);
 
                     break;
                 case UserActions.AddTransitionNode:
+                    if(selectedNode is StateNode)
+                    {
+                        StateNode from = (StateNode)selectedNode;
+                        from.AddTransition();
+                    }
+
                     break;
                 case UserActions.DeleteNode:
-                    if(selectedNode != null)
+                    if(selectedNode is StateNode)
+                    {
+                        StateNode target = (StateNode)selectedNode;
+
+                        target.ClearReferences();
+                        windows.Remove(target);
+                    }
+
+                    if(selectedNode is TransitionNode)
+                    {
+                        TransitionNode target = (TransitionNode)selectedNode;
+
+                        windows.Remove(target);
+
+                        if (target.enterState.currentState.transitions.Contains(target.targetTransition))
+                            target.enterState.currentState.transitions.Remove(target.targetTransition);
+                    }
+
+                    if(selectedNode is CommentNode)
                     {
                         windows.Remove(selectedNode);
                     }
@@ -165,8 +214,8 @@ namespace CET
                 case UserActions.CommentNode:
                     CommentNode commentNode = new CommentNode
                     {
-                        windowRect = new Rect(mousePosition.x, mousePosition.y, 150, 100),
-                        windowTitle = "State"
+                        windowRect = new Rect(mousePosition.x, mousePosition.y, 200, 100),
+                        windowTitle = "Comment"
                     };
 
                     windows.Add(commentNode);
@@ -176,33 +225,62 @@ namespace CET
             }
         }
 
-        #region sample
-        void Sample()
+        #region Helper Methods
+        public static TransitionNode AddTransitionNode(int index, Transition transition, StateNode from)
         {
-            //GenericMenu menu = new GenericMenu();
+            Rect fromRect = from.windowRect;
 
-            //menu.AddItem(new GUIContent("노드추가"), false, CreateNode, "Node");
+            fromRect.x += 50;
 
-            //node1 = GUI.Window(1, node1, WindowCallBack, "node1", "flow node 1");
-            //node2 = GUI.Window(2, node2, WindowCallBack2, "node2", "flow node 3");
+            float targetY = fromRect.y - fromRect.height;
 
-            //var start = new Vector3(node1.x + node1.width, node1.y + node1.height / 2.0f, 0.0f);
-            //var startTan = start + new Vector3(100.0f, 0.0f, 0.0f);
+            if(from.currentState != null)
+            {
+                targetY += (index * 100);
+            }
 
-            //var end = new Vector3(node2.x, node2.y + node2.height / 2.0f, 0.0f);
-            //var endTan = end + new Vector3(-100.0f, 0.0f, 0.0f);
+            fromRect.y = targetY;
 
-            //Handles.DrawBezier(start, end, startTan, endTan, Color.red, null, 3.0f);
+            TransitionNode transitionNode = CreateInstance<TransitionNode>();
+            transitionNode.Init(from, transition);
+            transitionNode.windowRect = new Rect(fromRect.x + 200 + 100, fromRect.y + (fromRect.height * 0.7f), 200, 80);
+            transitionNode.windowTitle = "Condition Check";
+
+            windows.Add(transitionNode);
+
+            return transitionNode;
         }
-        void WindowCallBack(int id)
-        {
-            GUI.DragWindow();
-        }
 
-        void WindowCallBack2(int id)
-        {
-            GUI.DragWindow();
-        }
         #endregion
+
+        public static void DrawNodeCurve(Rect start, Rect end, bool left, Color curveColor)
+        {
+            Vector3 startPos = new Vector3(
+                (left) ? start.x + start.width : start.x,
+                start.y + (start.height * 0.5f),
+                0);
+
+            Vector3 endPos = new Vector3(end.x + (end.width * 0.5f), end.y + (end.height * 0.5f), 0);
+            Vector3 startTan = startPos + Vector3.right * 50;
+            Vector3 endTan = endPos + Vector3.left * 50;
+
+            Color shadow = new Color(0, 0, 0, 0.06f);
+
+            for(int i = 0; i < 3; i++)
+            {
+                Handles.DrawBezier(startPos, endPos, startTan, endTan, shadow, null, (i + 1) * 0.5f);
+            }
+
+            Handles.DrawBezier(startPos, endPos, startTan, endTan, curveColor, null, 1);
+        }
+
+        public static void ClearWindowsFormList(List<BaseNode> baseNodes)
+        { 
+            for(int i = 0; i < baseNodes.Count; i++)
+            {
+                if (windows.Contains(baseNodes[i]))
+                    windows.Remove(baseNodes[i]);
+            }
+        }
     }
 }

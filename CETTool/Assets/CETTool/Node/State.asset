@@ -18,11 +18,11 @@ MonoBehaviour:
   onExit: []
   transitions:
   - condition: {fileID: 0}
-    state: {fileID: 0}
+    targetState: {fileID: 0}
     disable: 0
   - condition: {fileID: 0}
-    state: {fileID: 0}
+    targetState: {fileID: 0}
     disable: 0
   - condition: {fileID: 0}
-    state: {fileID: 0}
+    targetState: {fileID: 0}
     disable: 0

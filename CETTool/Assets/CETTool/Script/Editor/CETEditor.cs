@@ -8,18 +8,15 @@ namespace CET
     [InitializeOnLoad]
     public class CETEditor : MonoBehaviour
     {
-        static CETWindow cetWindow = null;
-
+        //public static CETWindow cetWindow = null;
         #region Init
         [MenuItem("CETTool/Open Node Window")]
         static void OpenNodeWindow()
         {
-            cetWindow = EditorWindow.GetWindow<CETWindow>();
+            CETWindow.Instance.maxSize = new Vector2(1280, 720);
+            CETWindow.Instance.minSize = new Vector2(1280, 720);
 
-            cetWindow.maxSize = new Vector2(1280, 720);
-            cetWindow.minSize = new Vector2(1280, 720);
-
-            cetWindow.Show();
+            CETWindow.Instance.Show();
         }
         #endregion
 

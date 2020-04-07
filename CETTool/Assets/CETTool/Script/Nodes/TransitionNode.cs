@@ -45,7 +45,7 @@ namespace CET
                 rect.width = 1;
                 rect.height = 1;
 
-                CETWindow.DrawNodeCurve(enterState.windowRect, rect, true, Color.black);
+                CETWindow.Instance.DrawNodeCurve(enterState.windowRect, rect, true, Color.black);
             }
         }
     }

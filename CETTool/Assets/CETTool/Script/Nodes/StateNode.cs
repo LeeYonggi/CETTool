@@ -50,16 +50,9 @@ namespace CET
 
             if(previousState != currentState)
             {
-                serializedState = null;
+                NodeInitialize();
 
-                previousState = currentState;
-
-                ClearReferences();
-
-                for(int i = 0; i < currentState.transitions.Count; i++)
-                {
-                    dependencies.Add(CETWindow.AddTransitionNode(i, currentState.transitions[i], this));
-                }
+                CETWindow.CurrentGraph.SetStateNode(this);
             }
 
             if(currentState != null)
@@ -95,6 +88,22 @@ namespace CET
                     standard += (onStateList.count + onEnterList.count + onExitList.count) * 20;
                     windowRect.height = standard;
                 }
+
+                CETWindow.CurrentGraph.SetStateNode(this);
+            }
+        }
+
+        public void NodeInitialize()
+        {
+            serializedState = null;
+
+            previousState = currentState;
+
+            ClearReferences();
+
+            for (int i = 0; i < currentState.transitions.Count; i++)
+            {
+                dependencies.Add(CETWindow.Instance.AddTransitionNode(i, currentState.transitions[i], this));
             }
         }
 
@@ -115,15 +124,16 @@ namespace CET
         {
             Transition transition = currentState.AddTransition();
             
-            dependencies.Add(CETWindow.AddTransitionNode(currentState.transitions.Count, transition, this));
+            dependencies.Add(CETWindow.Instance.AddTransitionNode(currentState.transitions.Count, transition, this));
 
             return transition;
         }
 
         public void ClearReferences()
         {
-            CETWindow.ClearWindowsFormList(dependencies);
+            CETWindow.Instance.ClearWindowsFormList(dependencies);
             dependencies.Clear();
         }
+
     }
 }

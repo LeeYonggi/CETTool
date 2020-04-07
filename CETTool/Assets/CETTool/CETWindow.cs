@@ -13,6 +13,15 @@ namespace CET
         bool clickedOnWindow;
         BaseNode selectedNode;
 
+        private static CETWindow instance = null;
+
+        private static BehaviourGraph currentGraph;
+
+        private static BehaviourGraph previousGraph = null;
+
+        public readonly Vector2 stateNodeSize = new Vector2(200, 250);
+
+
         public enum UserActions
         {
             AddState,
@@ -29,6 +38,20 @@ namespace CET
 
         int index = 0;
 
+        #region Property
+        public static CETWindow Instance 
+        {
+            get
+            {
+                if (instance == null)
+                    instance = EditorWindow.GetWindow<CETWindow>();
+
+                return instance;
+            }
+        }
+
+        static public BehaviourGraph CurrentGraph { get => currentGraph; set => currentGraph = value; }
+        #endregion
 
         #region Draw Window
         private void OnGUI()
@@ -43,7 +66,14 @@ namespace CET
 
         private void OnEnable()
         {
-            windows.Clear();
+            if (currentGraph != null)
+                EditorUtility.SetDirty(currentGraph);
+        }
+
+        private void OnDisable()
+        {
+            if (currentGraph != null)
+                EditorUtility.SetDirty(currentGraph);
         }
 
         void DrawWindows()
@@ -60,6 +90,8 @@ namespace CET
                 windows[i].windowRect = GUI.Window(i, windows[i].windowRect, DrawNodeWindow, windows[i].windowTitle);
             }
 
+            DrawGraph();
+
             EndWindows();
         }
 
@@ -70,6 +102,8 @@ namespace CET
         }
         #endregion
 
+
+        #region Helper Methods
         void UserInput(Event e)
         {
             if(e.button == 1 && !makeTransition)
@@ -87,7 +121,6 @@ namespace CET
 
                 }
             }
-
         }
 
         void RightClick(Event e)
@@ -114,7 +147,9 @@ namespace CET
                 ModifyNode(e);
             }
         }
+        #endregion
 
+        #region Node Method
         private void CreateNode(Event e)
         {
             GenericMenu menu = new GenericMenu();
@@ -171,10 +206,11 @@ namespace CET
             switch (action)
             {
                 case UserActions.AddState:
-                    StateNode stateNode = new StateNode{
-                        windowRect = new Rect(mousePosition.x, mousePosition.y, 200, 250),
-                        windowTitle = "State"
-                    };
+                    StateNode stateNode = new StateNode();
+
+                    stateNode.windowRect = new Rect(mousePosition.x, mousePosition.y, stateNodeSize.x, stateNodeSize.y);
+                    stateNode.windowTitle = "State";
+                    
                     windows.Add(stateNode);
 
                     break;
@@ -212,11 +248,11 @@ namespace CET
 
                     break;
                 case UserActions.CommentNode:
-                    CommentNode commentNode = new CommentNode
-                    {
-                        windowRect = new Rect(mousePosition.x, mousePosition.y, 200, 100),
-                        windowTitle = "Comment"
-                    };
+                    CommentNode commentNode = CreateInstance<CommentNode>();
+
+                    commentNode.windowRect = new Rect(mousePosition.x, mousePosition.y, 200, 100);
+                    commentNode.windowTitle = "Comment";
+                    
 
                     windows.Add(commentNode);
                     break;
@@ -224,9 +260,7 @@ namespace CET
                     break;
             }
         }
-
-        #region Helper Methods
-        public static TransitionNode AddTransitionNode(int index, Transition transition, StateNode from)
+        public TransitionNode AddTransitionNode(int index, Transition transition, StateNode from)
         {
             Rect fromRect = from.windowRect;
 
@@ -251,9 +285,8 @@ namespace CET
             return transitionNode;
         }
 
-        #endregion
 
-        public static void DrawNodeCurve(Rect start, Rect end, bool left, Color curveColor)
+        public void DrawNodeCurve(Rect start, Rect end, bool left, Color curveColor)
         {
             Vector3 startPos = new Vector3(
                 (left) ? start.x + start.width : start.x,
@@ -274,7 +307,7 @@ namespace CET
             Handles.DrawBezier(startPos, endPos, startTan, endTan, curveColor, null, 1);
         }
 
-        public static void ClearWindowsFormList(List<BaseNode> baseNodes)
+        public void ClearWindowsFormList(List<BaseNode> baseNodes)
         { 
             for(int i = 0; i < baseNodes.Count; i++)
             {
@@ -282,5 +315,77 @@ namespace CET
                     windows.Remove(baseNodes[i]);
             }
         }
+
+        public StateNode AddStateNode(Vector2 pos)
+        {
+            StateNode stateNode = CreateInstance<StateNode>();
+
+            stateNode.windowRect = new Rect(pos.x, pos.y, stateNodeSize.x, stateNodeSize.y);
+            stateNode.windowTitle = "State";
+
+            windows.Add(stateNode);
+
+            currentGraph.SetStateNode(stateNode);
+
+            return stateNode;
+        }
+
+        #endregion
+
+        #region Graph Method
+
+        private void DrawGraph()
+        {
+            if (currentGraph == null)
+                EditorGUILayout.LabelField("Add Graph: ");
+
+            currentGraph = (BehaviourGraph)EditorGUILayout.ObjectField(currentGraph, typeof(BehaviourGraph), false);
+
+            if(previousGraph != currentGraph)
+            {
+                previousGraph = currentGraph;
+
+                windows.Clear();
+
+                LoadGraph();
+
+                //if (currentGraph == null)
+                //    return;
+
+                //for (int i = 0; i < currentGraph.savedStateNodes.Count; i++)
+                //{
+                //    StateNode stateNode = new StateNode();
+
+
+                //    windows.Add(stateNode);
+
+                //    currentGraph.AddStateNode(stateNode, currentGraph.savedStateNodes[i]);
+                //}
+            }
+        }
+
+        private void LoadGraph()
+        {
+            if (currentGraph == null)
+                return;
+            currentGraph.Init();
+
+            List<Saved_StateNode> stateNodeList = new List<Saved_StateNode>();
+
+            stateNodeList.AddRange(currentGraph.savedStateNodes);
+            currentGraph.savedStateNodes.Clear();
+
+            for(int i = stateNodeList.Count - 1; i >= 0; i--)
+            {
+                StateNode stateNode = AddStateNode(stateNodeList[i].position);
+
+                stateNode.currentState = stateNodeList[i].state;
+                currentGraph.SetStateNode(stateNode);
+
+                stateNode.NodeInitialize();
+            }
+        }
+
+        #endregion
     }
 }

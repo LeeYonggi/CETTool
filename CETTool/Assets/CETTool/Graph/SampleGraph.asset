@@ -14,8 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   savedStateNodes:
   - state: {fileID: 11400000, guid: ede897dc6f6f9424cb294bbb2093557d, type: 2}
-    position: {x: 107, y: 108}
+    position: {x: 174, y: 226}
   - state: {fileID: 11400000, guid: ede897dc6f6f9424cb294bbb2093557d, type: 2}
-    position: {x: 481, y: 24}
-  - state: {fileID: 11400000, guid: ede897dc6f6f9424cb294bbb2093557d, type: 2}
-    position: {x: 368, y: 271}
+    position: {x: 767, y: 166}

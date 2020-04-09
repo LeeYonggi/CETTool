@@ -120,6 +120,20 @@ namespace CET
                 {
 
                 }
+
+
+                if(e.type == EventType.MouseDrag)
+                {
+                    for (int i = 0; i < windows.Count; i++)
+                    {
+                        if (windows[i].windowRect.Contains(e.mousePosition))
+                        {
+                            if (currentGraph != null)
+                                currentGraph.SetNode(windows[i]);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -127,10 +141,9 @@ namespace CET
         {
             selectedNode = null;
             clickedOnWindow = false;
-
             for (int i = 0; i < windows.Count; i++)
             {
-                if(windows[i].windowRect.Contains(e.mousePosition))
+                if (windows[i].windowRect.Contains(e.mousePosition))
                 {
                     clickedOnWindow = true;
                     selectedNode = windows[i];
@@ -138,7 +151,7 @@ namespace CET
                 }
             }
 
-            if(!clickedOnWindow)
+            if (!clickedOnWindow)
             {
                 CreateNode(e);
             }
@@ -206,12 +219,7 @@ namespace CET
             switch (action)
             {
                 case UserActions.AddState:
-                    StateNode stateNode = new StateNode();
-
-                    stateNode.windowRect = new Rect(mousePosition.x, mousePosition.y, stateNodeSize.x, stateNodeSize.y);
-                    stateNode.windowTitle = "State";
-                    
-                    windows.Add(stateNode);
+                    AddStateNode(new Vector2(mousePosition.x, mousePosition.y));
 
                     break;
                 case UserActions.AddTransitionNode:
@@ -228,6 +236,8 @@ namespace CET
                         StateNode target = (StateNode)selectedNode;
 
                         target.ClearReferences();
+
+                        currentGraph.RemoveStateNode(target);
                         windows.Remove(target);
                     }
 
@@ -318,6 +328,8 @@ namespace CET
 
         public StateNode AddStateNode(Vector2 pos)
         {
+            if (currentGraph == null)
+                return null;
             StateNode stateNode = CreateInstance<StateNode>();
 
             stateNode.windowRect = new Rect(pos.x, pos.y, stateNodeSize.x, stateNodeSize.y);
@@ -325,7 +337,7 @@ namespace CET
 
             windows.Add(stateNode);
 
-            currentGraph.SetStateNode(stateNode);
+            currentGraph?.SetStateNode(stateNode);
 
             return stateNode;
         }
@@ -380,6 +392,8 @@ namespace CET
                 StateNode stateNode = AddStateNode(stateNodeList[i].position);
 
                 stateNode.currentState = stateNodeList[i].state;
+                stateNode.collapse = stateNodeList[i].isCollaps;
+
                 currentGraph.SetStateNode(stateNode);
 
                 stateNode.NodeInitialize();

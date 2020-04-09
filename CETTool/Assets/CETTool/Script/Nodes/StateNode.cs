@@ -8,7 +8,7 @@ namespace CET
 {
     public class StateNode : BaseNode
     {
-        bool collapse;
+        public bool collapse;
         public State currentState;
         State previousState;
 
@@ -43,7 +43,12 @@ namespace CET
                     windowRect.height = 100;
                 }
 
+                bool prevCollapse = collapse;
+
                 collapse = EditorGUILayout.Toggle("Window Reduction", collapse);
+
+                if (collapse != prevCollapse)
+                    CETWindow.CurrentGraph.SetStateNode(this);
             }
 
             currentState = (State)EditorGUILayout.ObjectField(currentState, typeof(State), false);
@@ -52,7 +57,7 @@ namespace CET
             {
                 NodeInitialize();
 
-                CETWindow.CurrentGraph.SetStateNode(this);
+                //CETWindow.CurrentGraph.SetStateNode(this);
             }
 
             if(currentState != null)

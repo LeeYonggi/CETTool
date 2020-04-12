@@ -19,15 +19,18 @@ namespace CET
 
         private static BehaviourGraph previousGraph = null;
 
-        public readonly Vector2 stateNodeSize = new Vector2(200, 250);
+        private bool isStateConnect = false;
 
+        public readonly Vector2 stateNodeSize = new Vector2(200, 250);
 
         public enum UserActions
         {
             AddState,
             AddTransitionNode,
             DeleteNode,
-            CommentNode
+            CommentNode,
+            AddActionNode,
+            ConnectStateNode
         }
 
         #endregion
@@ -39,7 +42,7 @@ namespace CET
         int index = 0;
 
         #region Property
-        public static CETWindow Instance 
+        public static CETWindow Instance
         {
             get
             {
@@ -52,6 +55,7 @@ namespace CET
 
         static public BehaviourGraph CurrentGraph { get => currentGraph; set => currentGraph = value; }
         #endregion
+
 
         #region Draw Window
         private void OnGUI()
@@ -80,15 +84,17 @@ namespace CET
         {
             BeginWindows();
 
-            foreach(var node in windows)
+            foreach (var node in windows)
             {
                 node.DrawCurve();
             }
 
-            for(int i = 0; i < windows.Count; i++)
+            for (int i = 0; i < windows.Count; i++)
             {
                 windows[i].windowRect = GUI.Window(i, windows[i].windowRect, DrawNodeWindow, windows[i].windowTitle);
             }
+
+            DrawMouseCurve();
 
             DrawGraph();
 
@@ -106,23 +112,23 @@ namespace CET
         #region Helper Methods
         void UserInput(Event e)
         {
-            if(e.button == 1 && !makeTransition)
+            if (e.button == 1 && !makeTransition)
             {
-                if(e.type == EventType.MouseDown)
+                if (e.type == EventType.MouseDown)
                 {
-                    RightClick(e);
+                    if(isStateConnect == false)
+                        RightClick(e);
                 }
             }
 
-            if(e.button== 0 && !makeTransition)
+            if (e.button == 0 && !makeTransition)
             {
-                if(e.type == EventType.MouseDown)
+                if (e.type == EventType.MouseDown)
                 {
-
+                    LeftClick(e);
                 }
 
-
-                if(e.type == EventType.MouseDrag)
+                if (e.type == EventType.MouseDrag)
                 {
                     for (int i = 0; i < windows.Count; i++)
                     {
@@ -159,6 +165,23 @@ namespace CET
             {
                 ModifyNode(e);
             }
+        }
+
+        void LeftClick(Event e)
+        {
+            if(isStateConnect)
+            {
+                for(int i = 0; i < windows.Count; i++)
+                {
+                    if(windows[i].windowRect.Contains(e.mousePosition) && windows[i] is StateNode)
+                    {
+                        ConnectTransitionState((StateNode)windows[i]);
+                        break;
+                    }
+                }
+                isStateConnect = false;
+            }
+
         }
         #endregion
 
@@ -200,10 +223,23 @@ namespace CET
             if (selectedNode is TransitionNode)
             {
                 menu.AddSeparator("");
+
+                TransitionNode transitionNode = (TransitionNode)selectedNode;
+
+                if(transitionNode.targetTransition.targetState == null)
+                    menu.AddItem(new GUIContent("Add Action"), false, ConTextCallback, UserActions.AddActionNode);
+                if(transitionNode.targetTransition.targetActions.Count == 0)
+                    menu.AddItem(new GUIContent("Connect StateNode"), false, ConTextCallback, UserActions.ConnectStateNode);
                 menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
             }
 
             if(selectedNode is CommentNode)
+            {
+                menu.AddSeparator("");
+                menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
+            }
+
+            if(selectedNode is ActionNode)
             {
                 menu.AddSeparator("");
                 menu.AddItem(new GUIContent("Delete"), false, ConTextCallback, UserActions.DeleteNode);
@@ -254,6 +290,16 @@ namespace CET
                     if(selectedNode is CommentNode)
                     {
                         windows.Remove(selectedNode);
+
+                    }
+
+                    if(selectedNode is ActionNode)
+                    {
+                        ActionNode target = (ActionNode)selectedNode;
+
+                        windows.Remove(target);
+
+                        target.transitionNode.RemoveAction(target.targetAction);
                     }
 
                     break;
@@ -266,35 +312,27 @@ namespace CET
 
                     windows.Add(commentNode);
                     break;
+                case UserActions.AddActionNode:
+                    if(selectedNode is TransitionNode)
+                    {
+                        TransitionNode actionNode = selectedNode as TransitionNode;
+
+                        actionNode.AddActionNode();
+                    }
+
+                    break;
+
+                case UserActions.ConnectStateNode:
+                    if(selectedNode is TransitionNode)
+                    {
+                        isStateConnect = true;
+                    }
+
+                    break;
                 default:
                     break;
             }
         }
-        public TransitionNode AddTransitionNode(int index, Transition transition, StateNode from)
-        {
-            Rect fromRect = from.windowRect;
-
-            fromRect.x += 50;
-
-            float targetY = fromRect.y - fromRect.height;
-
-            if(from.currentState != null)
-            {
-                targetY += (index * 100);
-            }
-
-            fromRect.y = targetY;
-
-            TransitionNode transitionNode = CreateInstance<TransitionNode>();
-            transitionNode.Init(from, transition);
-            transitionNode.windowRect = new Rect(fromRect.x + 200 + 100, fromRect.y + (fromRect.height * 0.7f), 200, 80);
-            transitionNode.windowTitle = "Condition Check";
-
-            windows.Add(transitionNode);
-
-            return transitionNode;
-        }
-
 
         public void DrawNodeCurve(Rect start, Rect end, bool left, Color curveColor)
         {
@@ -317,6 +355,15 @@ namespace CET
             Handles.DrawBezier(startPos, endPos, startTan, endTan, curveColor, null, 1);
         }
 
+        private void DrawMouseCurve()
+        {
+            if (isStateConnect == false)
+                return;
+
+            Rect mouseRect = new Rect(mousePosition.x, mousePosition.y, 1, 1);
+            DrawNodeCurve(selectedNode.windowRect, mouseRect, true, Color.red);
+        }
+
         public void ClearWindowsFormList(List<BaseNode> baseNodes)
         { 
             for(int i = 0; i < baseNodes.Count; i++)
@@ -325,6 +372,33 @@ namespace CET
                     windows.Remove(baseNodes[i]);
             }
         }
+
+        public TransitionNode AddTransitionNode(int index, Transition transition, StateNode from)
+        {
+            Rect fromRect = from.windowRect;
+
+            fromRect.x += 50;
+
+            float targetY = fromRect.y - fromRect.height;
+
+            if (from.currentState != null)
+            {
+                targetY += (index * 100);
+            }
+
+            fromRect.y = targetY;
+
+            TransitionNode transitionNode = CreateInstance<TransitionNode>();
+            transitionNode.Init(from, transition);
+            transitionNode.windowRect = new Rect(fromRect.x + 150 + 100, fromRect.y + (fromRect.height * 0.7f), 200, 80);
+            transitionNode.windowTitle = "Condition Check";
+            transitionNode.NodeInitialize();
+
+            windows.Add(transitionNode);
+
+            return transitionNode;
+        }
+
 
         public StateNode AddStateNode(Vector2 pos)
         {
@@ -340,6 +414,42 @@ namespace CET
             currentGraph?.SetStateNode(stateNode);
 
             return stateNode;
+        }
+
+        public ActionNode AddActionNode(int index, Action action, TransitionNode from)
+        {
+            Rect fromRect = from.windowRect;
+
+            fromRect.x += 50;
+
+            float targetY = fromRect.y - fromRect.height;
+
+            if (from.targetTransition != null)
+            {
+                targetY += (index * 100);
+            }
+
+            fromRect.y = targetY;
+
+            ActionNode actionNode = CreateInstance<ActionNode>();
+
+            actionNode.Init(action, from);
+            actionNode.windowRect = new Rect(fromRect.x + 100 + 100, fromRect.y + (fromRect.height * 0.7f), 180, 80);
+            actionNode.windowTitle = "Action";
+
+            windows.Add(actionNode);
+
+            return actionNode;
+        }
+
+        private void ConnectTransitionState(StateNode target)
+        {
+            if ((selectedNode is TransitionNode) == false)
+                return;
+
+            TransitionNode transitionNode = (TransitionNode)selectedNode;
+
+            transitionNode.ConnectStateNode(target);
         }
 
         #endregion
@@ -387,7 +497,7 @@ namespace CET
             stateNodeList.AddRange(currentGraph.savedStateNodes);
             currentGraph.savedStateNodes.Clear();
 
-            for(int i = stateNodeList.Count - 1; i >= 0; i--)
+            for(int i = 0; i < stateNodeList.Count; i++)
             {
                 StateNode stateNode = AddStateNode(stateNodeList[i].position);
 

@@ -136,6 +136,12 @@ namespace CET
 
         public void ClearReferences()
         {
+            for (int i = 0; i < dependencies.Count; i++)
+            {
+                TransitionNode node = dependencies[i] as TransitionNode;
+
+                node.ClearReference();
+            }
             CETWindow.Instance.ClearWindowsFormList(dependencies);
             dependencies.Clear();
         }

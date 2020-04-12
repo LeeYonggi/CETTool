@@ -19,6 +19,5 @@ namespace CET
             CETWindow.Instance.Show();
         }
         #endregion
-
     }
 }

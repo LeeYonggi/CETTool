@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace CET
 {
@@ -37,6 +38,7 @@ namespace CET
             }
         }
 
+
         #region
         private void SetTransitionNode(TransitionNode node)
         {
@@ -53,7 +55,6 @@ namespace CET
             savedNode.position = new Vector2(node.windowRect.x, node.windowRect.y);
             savedNode.transition = node.targetTransition;
             savedNode.enterState = node.enterState.currentState;
-            savedNode.targetState = node.targetState.currentState;
         }
 
         private Saved_Transition GetSavedTransition(TransitionNode node)
@@ -115,12 +116,15 @@ namespace CET
             return saveStateNode;
         }
 
+        // 초기화할때만 쓸것
         public StateNode GetStateNode(State state)
         {
-            StateNode stateNode = null;
-
-            stateDict.TryGetValue(state, out stateNode);
-            return stateNode;
+            var query =
+                from targetState in stateNodesDict.Keys
+                where targetState.currentState == state
+                select targetState;
+            
+            return query.ToList()[0];
         }
         #endregion
     }

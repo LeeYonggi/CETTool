@@ -10,19 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4bfa131745bd274899a1ca8a201760e, type: 3}
-  m_Name: State
+  m_Name: HealthState
   m_EditorClassIdentifier: 
   onState:
   - {fileID: 11400000, guid: 68368bef7d3f64345bc45e76f58a5430, type: 2}
   onEnter: []
   onExit: []
   transitions:
-  - condition: {fileID: 0}
-    targetState: {fileID: 0}
+  - condition: {fileID: 11400000, guid: c7edbfc47c6113d4bb48ef8d09b5e23a, type: 2}
+    targetState: {fileID: 11400000, guid: a4b9402cdfb56c646b880eb530fbddb0, type: 2}
     disable: 0
-  - condition: {fileID: 0}
-    targetState: {fileID: 0}
-    disable: 0
-  - condition: {fileID: 0}
-    targetState: {fileID: 0}
-    disable: 0
+    targetActions: []

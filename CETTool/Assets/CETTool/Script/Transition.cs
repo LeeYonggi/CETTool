@@ -10,5 +10,15 @@ namespace CET
         public Condition condition;
         public State targetState;
         public bool disable;
+
+        public List<Action> targetActions = new List<Action>();
+
+        public Action AddAction()
+        {
+            Action action = new Action();
+
+            targetActions.Add(action);
+            return action;
+        }
     }
 }

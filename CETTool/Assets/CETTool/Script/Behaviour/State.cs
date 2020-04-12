@@ -41,9 +41,9 @@ namespace CET
                 {
                     if (transitions[i].targetState != null)
                     {
-                        states.currentState = transitions[i].targetState;
+                        states.CurrentState = transitions[i].targetState;
                         OnExit(states);
-                        states.currentState.OnEnter(states);
+                        states.CurrentState.OnEnter(states);
                     }
                     return;
                 }
@@ -53,10 +53,10 @@ namespace CET
 
         public void ExecuteActions(StateManager states, StateActions[] actions)
         {
-            for(int i = 0; i < onState.Length; i++)
+            for(int i = 0; i < actions.Length; i++)
             {
-                if (onState[i] != null)
-                    onState[i].Execute(states);
+                if (actions[i] != null)
+                    actions[i].Execute(states);
             }
         }
 

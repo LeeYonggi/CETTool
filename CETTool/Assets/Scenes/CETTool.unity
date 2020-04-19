@@ -204,6 +204,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2071264893}
   - component: {fileID: 2071264894}
+  - component: {fileID: 2071264895}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -238,7 +239,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 0
-  currentState: {fileID: 0}
   currentGraph: {fileID: 11400000, guid: 8c9bc3bb692d8fb42901585940800ae6, type: 2}
   delta: 0
   mTransform: {fileID: 0}
+--- !u!114 &2071264895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2071264892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fdca5042b1d12a4890ec1bd4f04290d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tweenTarget: {fileID: 2071264892}
+  hover: {r: 0.88235295, g: 0.78431374, b: 0.5882353, a: 1}
+  pressed: {r: 0.7176471, g: 0.6392157, b: 0.48235294, a: 1}
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  duration: 0.2
+  dragHighlight: 0
+  hoverSprite: 
+  pressedSprite: 
+  disabledSprite: 
+  hoverSprite2D: {fileID: 0}
+  pressedSprite2D: {fileID: 0}
+  disabledSprite2D: {fileID: 0}
+  pixelSnap: 0
+  onClick:
+  - mTarget: {fileID: 2071264894}
+    mMethodName: 
+    mParameters: []
+    oneShot: 0

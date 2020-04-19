@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace CET
 {
@@ -24,8 +25,6 @@ namespace CET
             mTransform = this.transform;
 
             currentState = currentGraph.savedStateNodes[0].state;
-
-            currentState.OnEnter(this);
         }
 
         private void Update()

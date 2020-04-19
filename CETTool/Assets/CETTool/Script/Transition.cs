@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 namespace CET
 { 
@@ -9,6 +10,7 @@ namespace CET
     {
         public Condition condition;
         public State targetState;
+        public GameObject targetObject;
         public bool disable;
 
         public List<Action> targetActions = new List<Action>();

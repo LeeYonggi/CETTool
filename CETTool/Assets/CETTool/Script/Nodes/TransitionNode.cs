@@ -13,6 +13,7 @@ namespace CET
 
         List<BaseNode> dependencies = new List<BaseNode>();
 
+
         public void Init(StateNode enterState, Transition transition)
         {
             this.enterState = enterState;
@@ -27,7 +28,7 @@ namespace CET
             EditorGUILayout.LabelField("");
             targetTransition.condition = (Condition)EditorGUILayout.ObjectField(targetTransition.condition, typeof(Condition), false);
 
-            if(targetTransition.condition == null)
+            if (targetTransition.condition == null)
             {
                 EditorGUILayout.LabelField("No Condition!");
             }

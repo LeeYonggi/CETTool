@@ -7,22 +7,10 @@ namespace CET
     [CreateAssetMenu]
     public class State : ScriptableObject
     {
-        public StateActions[] onState;
-        public StateActions[] onEnter;
-        public StateActions[] onExit;
+        public StateActions onState;
 
         public List<Transition> transitions = new List<Transition>();
 
-
-        public void OnEnter(StateManager states)
-        {
-            ExecuteActions(states, onEnter);
-        }
-
-        public void OnExit(StateManager states)
-        {
-            ExecuteActions(states, onExit);
-        }
 
         public void Tick(StateManager states)
         {
@@ -42,8 +30,6 @@ namespace CET
                     if (transitions[i].targetState != null)
                     {
                         states.CurrentState = transitions[i].targetState;
-                        OnExit(states);
-                        states.CurrentState.OnEnter(states);
                     }
                     return;
                 }
@@ -51,13 +37,9 @@ namespace CET
             }
         }
 
-        public void ExecuteActions(StateManager states, StateActions[] actions)
+        public void ExecuteActions(StateManager states, StateActions actions)
         {
-            for(int i = 0; i < actions.Length; i++)
-            {
-                if (actions[i] != null)
-                    actions[i].Execute(states);
-            }
+            actions.Execute(states);
         }
 
         public Transition AddTransition()

@@ -13,9 +13,7 @@ namespace CET
         State previousState;
 
         SerializedObject serializedState;
-        ReorderableList onStateList;
-        ReorderableList onExitList;
-        ReorderableList onEnterList;
+        StateActions onState;
 
         List<BaseNode> dependencies = new List<BaseNode>();
 
@@ -65,32 +63,18 @@ namespace CET
                 if(serializedState == null)
                 {
                     serializedState = new SerializedObject(currentState);
-                    onStateList = new ReorderableList(serializedState, serializedState.FindProperty("onState"), true, true, true, true);
-                    onEnterList = new ReorderableList(serializedState, serializedState.FindProperty("onEnter"), true, true, true, true);
-                    onExitList = new ReorderableList(serializedState, serializedState.FindProperty("onExit"), true, true, true, true);
+                    onState = (StateActions)EditorGUILayout.ObjectField(onState, typeof(StateActions), false);
                 }
 
                 if(!collapse)
                 {
                     serializedState.Update();
-                    HandleReordableList(onStateList, "On State");
-                    HandleReordableList(onEnterList, "On Enter");
-                    HandleReordableList(onExitList, "On Exit");
-
-                    EditorGUILayout.LabelField("");
-                    onStateList.DoLayoutList();
-
-                    EditorGUILayout.LabelField("");
-                    onEnterList.DoLayoutList();
-
-                    EditorGUILayout.LabelField("");
-                    onExitList.DoLayoutList();
 
                     serializedState.ApplyModifiedProperties();
 
                     float standard = 300;
 
-                    standard += (onStateList.count + onEnterList.count + onExitList.count) * 20;
+                    standard += 1 * 20;
                     windowRect.height = standard;
                 }
 
